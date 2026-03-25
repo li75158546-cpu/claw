@@ -1,23 +1,16 @@
-name: Sync to HF
-on:
-  push:
-    branches: [main]
-  workflow_dispatch: # 允许你手动点击运行
-
-jobs:
-  sync:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-          lfs: true
-
-      - name: Push to Hugging Face
-        env:
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          # 强制同步：不管目标仓库有什么，直接用现在的覆盖
+          # 1. 强力删除那些报错的超大垃圾缓存文件夹
+          rm -rf .serena
+          rm -rf apps/shared/ClawdisKit/.build
+          
+          # 2. 配置身份（防止报错）
+          git config --global user.email "echo8900@example.com"
+          git config --global user.name "echo8900"
+          
+          # 3. 把删除动作提交了
+          git add .
+          git commit -m "Clean up large cache files" || echo "No changes to commit"
+          
+          # 4. 强制推送到 HF
           git remote add hf https://echo8900:$HF_TOKEN@huggingface.co/spaces/echo8900/claw
           git push --force hf main
