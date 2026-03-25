@@ -1,16 +1,39 @@
-name: Sync
+name: Sync to Hugging Face
+
 on:
   push:
-    branches: [main]
+    branches:
+      - main
   workflow_dispatch:
+
 jobs:
-  build:
+  sync:
     runs-on: ubuntu-latest
     steps:
-      - name: Sync to HF
-        uses: repo-sync/github-sync@v2
+      - name: Checkout GitHub repo
+        uses: actions/checkout@v3
         with:
-          source_repo: "https://github.com/${{ github.repository }}.git"
-          source_branch: "main"
-          destination_repo: "https://echo8900:${{ secrets.HF_TOKEN }}@huggingface.co/spaces/echo8900/claw"
-          destination_branch: "main"
+          fetch-depth: 0
+
+      - name: Sync to HF
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          # 1. 配置 Git 身份
+          git config --global user.email "actions@github.com"
+          git config --global user.name "github-actions"
+
+          # 2. 克隆 HF 仓库到本地文件夹 hf_repo
+          git clone https://echo8900:$HF_TOKEN@huggingface.co/spaces/echo8900/claw hf_repo
+
+          # 3. 将当前 GitHub 仓库内容复制到 hf_repo（排除 .git 文件夹）
+          cp -rf ./* hf_repo/
+          rm -rf hf_repo/.git
+
+          # 4. 重新初始化 hf_repo 并强制推送
+          cd hf_repo
+          git init
+          git remote add origin https://echo8900:$HF_TOKEN@huggingface.co/spaces/echo8900/claw
+          git add .
+          git commit -m "Force sync from GitHub"
+          git push --force origin master:main
