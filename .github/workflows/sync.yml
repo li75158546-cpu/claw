@@ -11,4 +11,6 @@ jobs:
         with:
           fetch-depth: 0
       - name: Push to hub
-        run: git push --force https://echo8900:${{ secrets.HF_TOKEN }}@huggingface.co/spaces/echo8900/claw main
+        run: |
+          git remote add hf https://echo8900:${{ secrets.HF_TOKEN }}@huggingface.co/spaces/echo8900/claw
+          git push --force hf main
