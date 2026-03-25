@@ -1,16 +1,16 @@
-name: Sync to HF
+name: Sync
 on:
   push:
     branches: [main]
   workflow_dispatch:
 jobs:
-  sync:
+  build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Sync to HF
+        uses: repo-sync/github-sync@v2
         with:
-          fetch-depth: 0
-      - name: Push to hub
-        run: |
-          git remote add hf https://echo8900:${{ secrets.HF_TOKEN }}@huggingface.co/spaces/echo8900/claw
-          git push --force hf main
+          source_repo: "https://github.com/${{ github.repository }}.git"
+          source_branch: "main"
+          destination_repo: "https://echo8900:${{ secrets.HF_TOKEN }}@huggingface.co/spaces/echo8900/claw"
+          destination_branch: "main"
